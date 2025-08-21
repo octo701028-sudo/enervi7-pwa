@@ -1,47 +1,39 @@
-// Enervi7 PWA: 強制刷新快取版本 v5
-const CACHE_NAME = 'enervi7-cache-v5';
-const CORE_ASSETS = [
+// Enervi7 PWA SW v7
+const CACHE_NAME = 'enervi7-cache-v7';
+const CORE = [
   './',
   './index.html',
   './style.css',
-  './app.js?v=5',
+  './app.js?v=7',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',
   './maskable-512.png'
 ];
-
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(CORE_ASSETS))
-  );
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(CORE)));
   self.skipWaiting();
 });
-
-self.addEventListener('activate', event => {
-  event.waitUntil((async () => {
+self.addEventListener('activate', e => {
+  e.waitUntil((async () => {
     const keys = await caches.keys();
-    await Promise.all(
-      keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
-    );
+    await Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)));
     await self.clients.claim();
   })());
 });
-
-self.addEventListener('fetch', event => {
-  const { request } = event;
-  event.respondWith((async () => {
-    const cached = await caches.match(request, { ignoreSearch: true });
+self.addEventListener('fetch', e => {
+  const req = e.request;
+  e.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    const cached = await cache.match(req, { ignoreSearch: true });
     if (cached) return cached;
-    try {
-      const fresh = await fetch(request);
-      // 對 GET 結果做快取（忽略查詢字串差異）
-      if (request.method === 'GET') {
-        const cache = await caches.open(CACHE_NAME);
-        cache.put(request, fresh.clone());
+    try{
+      const res = await fetch(req);
+      if (req.method === 'GET' && res.status === 200 && res.type !== 'opaque') {
+        cache.put(req, res.clone());
       }
-      return fresh;
-    } catch (e) {
+      return res;
+    }catch(err){
       return cached || Response.error();
     }
   })());

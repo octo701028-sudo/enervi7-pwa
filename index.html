@@ -1,14 +1,58 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Enervi 7</title>
+  <meta name="theme-color" content="#6f42c1" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="./icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <!-- 這個檔只做版本外掛與熱更新，不含版面更動 -->
-  <script src="./app.js?v=5"></script>
+<header class="appbar">
+  <div class="brand">Enervi 7</div>
+  <div class="actions">
+    <button id="installBtn" class="ghost">安裝 App</button>
+  </div>
+</header>
+
+<main class="container">
+  <section class="panel">
+    <h2>今日能量設定</h2>
+    <div class="sliders">
+      <div class="row"><label>安住</label><input type="range" min="0" max="10" value="5" id="s0"><span id="v0">5</span></div>
+      <div class="row"><label>根基</label><input type="range" min="0" max="10" value="5" id="s1"><span id="v1">5</span></div>
+      <div class="row"><label>感受</label><input type="range" min="0" max="10" value="5" id="s2"><span id="v2">5</span></div>
+      <div class="row"><label>行動</label><input type="range" min="0" max="10" value="5" id="s3"><span id="v3">5</span></div>
+      <div class="row"><label>交流</label><input type="range" min="0" max="10" value="5" id="s4"><span id="v4">5</span></div>
+      <div class="row"><label>洞察</label><input type="range" min="0" max="10" value="5" id="s5"><span id="v5">5</span></div>
+      <div class="row"><label>願景</label><input type="range" min="0" max="10" value="5" id="s6"><span id="v6">5</span></div>
+    </div>
+    <button id="genBtn" class="primary">✨ 產生結果</button>
+  </section>
+
+  <section class="panel">
+    <h2>雷達圖（七階能量分佈）</h2>
+    <div class="canvasWrap">
+      <canvas id="radar" aria-label="七階能量雷達圖" role="img"></canvas>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h3>今日聚焦點</h3>
+    <div id="focus" class="focus"></div>
+    <h3 style="margin-top:24px;">七階關鍵字 × 行動建議</h3>
+    <div id="advice" class="advice"></div>
+  </section>
+</main>
+
+<footer class="footer">
+  <small>v7 • Enervi 7 PWA</small>
+</footer>
+
+<script src="./app.js?v=7"></script>
 </body>
 </html>
