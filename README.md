@@ -1,1 +1,3 @@
-Upload all files to a public repo root and enable GitHub Pages (main/root).
+# Enervi7 PWA
+
+上傳這些檔案到 GitHub Pages repo 根目錄即可。
