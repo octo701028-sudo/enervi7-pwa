@@ -5,23 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Enervi 7 • PWA</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#0c1022">
+  <meta name="theme-color" content="#120826">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <script defer src="app.js"></script>
 </head>
 <body>
   <header>
-    <div class="brand">⚡ Enervi 7 <small>Align. Awaken. Amplify.</small></div>
-    <button class="btn secondary" id="installBtn" style="display:none">安裝 App</button>
+    <h1>Enervi 7</h1>
+    <div class="tagline">覺醒你的七階能量 · Awaken Your 7 Energies</div>
   </header>
   <div class="container">
     <div class="card">
-      <h1>Enervi 7 能量檢測</h1>
+      <h2>Enervi 7 能量檢測</h2>
       <div class="kv">
         <div>定位</div><div>數據化 × 體驗化 × 專業化</div>
         <div>使用方式</div><div>移動滑桿 → 按「產生結果」 → 檢視雷達圖與行動建議</div>
@@ -60,18 +60,11 @@
       <div id="history"></div>
     </div>
 
-    <footer>© <span id="year"></span> Enervi 7 — Align. Awaken. Amplify.</footer>
+    <footer>© <span id="year"></span> Enervi 7 — Awaken Your 7 Energies.</footer>
   </div>
   <script>
     if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js'); }
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      const btn = document.getElementById('installBtn');
-      btn.style.display = 'inline-block';
-      btn.onclick = async () => { deferredPrompt.prompt(); deferredPrompt = null; btn.style.display='none'; };
-    });
+    document.getElementById('year').textContent = new Date().getFullYear();
   </script>
 </body>
 </html>
