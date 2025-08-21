@@ -1,56 +1,70 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Enervi 7｜覺醒你的七階能量</title>
-  <meta name="description" content="Enervi 7：七階能量自我校準工具，離線可用、可安裝的 PWA 版本。" />
-  <meta name="theme-color" content="#6C4EF4" />
-  <link rel="icon" href="./icon-192.png" sizes="192x192">
-  <link rel="apple-touch-icon" href="./icon-192.png">
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Enervi 7 • PWA</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#120826">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script defer src="app.js"></script>
 </head>
 <body>
-  <header class="hero">
+  <header>
     <h1>Enervi 7</h1>
-    <p class="tag">Align · Awaken · Amplify</p>
+    <div class="tagline">覺醒你的七階能量 · Awaken Your 7 Energies</div>
   </header>
-
-  <main class="container">
-    <section class="card">
-      <h2>七階能量校準</h2>
-      <p class="muted">拖曳滑桿 → 按下「產生結果」。所有資料僅儲存在你的瀏覽器（離線也能用）。</p>
-
-      <div id="sliders"></div>
-      <button id="gen" class="primary">✨ 產生結果</button>
-    </section>
-
-    <section class="card" id="result" hidden>
-      <h2>雷達圖（七階能量分佈）</h2>
-      <canvas id="radar" width="360" height="360"></canvas>
-
-      <h3>今日聚焦點</h3>
-      <p id="focus" class="focus"></p>
-
-      <h3>七階關鍵字 × 行動建議</h3>
-      <div id="advice"></div>
-
-      <div class="actions">
-        <button id="save" class="ghost">💾 儲存本次結果</button>
-        <button id="export" class="ghost">⬇️ 匯出歷史 CSV</button>
+  <div class="container">
+    <div class="card">
+      <h2>Enervi 7 能量檢測</h2>
+      <div class="kv">
+        <div>定位</div><div>數據化 × 體驗化 × 專業化</div>
+        <div>使用方式</div><div>移動滑桿 → 按「產生結果」 → 檢視雷達圖與行動建議</div>
+        <div>暱稱（選填）</div><div><input id="userName" type="text" placeholder="你的暱稱"></div>
       </div>
+    </div>
 
-      <h3>歷史紀錄</h3>
-      <table id="history"><thead><tr><th>時間</th><th>分數</th></tr></thead><tbody></tbody></table>
-    </section>
-  </main>
+    <div class="card">
+      <h2>評估 0～10（0=完全沒有、10=非常充足）</h2>
+      <div class="grid" id="sliders"></div>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="genBtn">✨ 產生結果</button>
+        <button class="btn secondary" id="saveBtn" disabled>💾 儲存本次結果</button>
+        <button class="btn secondary" id="exportBtn">⬇️ 匯出歷史 CSV</button>
+        <button class="btn secondary" id="clearBtn">🗑️ 清除所有歷史</button>
+      </div>
+    </div>
 
-  <footer class="foot">© 2025 Enervi 7 • PWA</footer>
+    <div class="card">
+      <h2>雷達圖（七階能量分佈）</h2>
+      <canvas id="radar" height="360"></canvas>
+    </div>
 
+    <div class="card" id="focusCard" style="display:none">
+      <h2>🎯 今日聚焦點</h2>
+      <div id="focusText"></div>
+    </div>
+
+    <div class="card">
+      <h2>七階關鍵字 × 行動建議</h2>
+      <div id="details"></div>
+    </div>
+
+    <div class="card">
+      <h2>📈 歷史紀錄（僅保存在你的裝置）</h2>
+      <div id="history"></div>
+    </div>
+
+    <footer>© <span id="year"></span> Enervi 7 — Awaken Your 7 Energies.</footer>
+  </div>
   <script>
-  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js', { scope: './' }); }
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js'); }
+    document.getElementById('year').textContent = new Date().getFullYear();
   </script>
-  <script src="./app.js"></script>
 </body>
 </html>
