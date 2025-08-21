@@ -2,57 +2,93 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Enervi 7</title>
-  <meta name="theme-color" content="#6f42c1" />
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="apple-touch-icon" href="./icon-192.png">
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./style.css">
+
+  <!-- PWA 基本設定 -->
+  <meta name="theme-color" content="#6C47FF" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" sizes="192x192" href="icon-192.png" />
+  <link rel="icon" sizes="512x512" href="icon-512.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+
+  <!-- 你的樣式（可保留原來的） -->
+  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    /* 簡單保底樣式（不會覆蓋你 style.css 的細節） */
+    :root { --brand:#6C47FF; --bg:#13131a; --card:#181823; --text:#e9e9f3; --muted:#b6b6c9; }
+    body { margin:0; background:var(--bg); color:var(--text); font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,"Noto Sans TC","PingFang TC","Heiti TC",Helvetica,Arial,sans-serif; }
+    header { position:sticky; top:0; z-index:10; background:linear-gradient(135deg,#6C47FF,#7F56FF); color:#fff; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 14px 16px; }
+    .install-btn{ float:right; padding:8px 12px; border:0; border-radius:10px; color:#6C47FF; background:#fff; font-weight:600; cursor:pointer;}
+    .card { background:var(--card); border-radius:14px; padding:16px; margin:16px auto; }
+    h1,h2{ margin:10px 0; }
+    .hint{ color:var(--muted); font-size:13px; }
+  </style>
+
+  <!-- Chart.js 用 CDN（離線時會被 SW cache） -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-<header class="appbar">
-  <div class="brand">Enervi 7</div>
-  <div class="actions">
-    <button id="installBtn" class="ghost">安裝 App</button>
-  </div>
-</header>
-
-<main class="container">
-  <section class="panel">
-    <h2>今日能量設定</h2>
-    <div class="sliders">
-      <div class="row"><label>安住</label><input type="range" min="0" max="10" value="5" id="s0"><span id="v0">5</span></div>
-      <div class="row"><label>根基</label><input type="range" min="0" max="10" value="5" id="s1"><span id="v1">5</span></div>
-      <div class="row"><label>感受</label><input type="range" min="0" max="10" value="5" id="s2"><span id="v2">5</span></div>
-      <div class="row"><label>行動</label><input type="range" min="0" max="10" value="5" id="s3"><span id="v3">5</span></div>
-      <div class="row"><label>交流</label><input type="range" min="0" max="10" value="5" id="s4"><span id="v4">5</span></div>
-      <div class="row"><label>洞察</label><input type="range" min="0" max="10" value="5" id="s5"><span id="v5">5</span></div>
-      <div class="row"><label>願景</label><input type="range" min="0" max="10" value="5" id="s6"><span id="v6">5</span></div>
+  <header>
+    <div class="wrap">
+      <strong>Enervi 7</strong>
+      <button id="installBtn" class="install-btn" hidden>安裝 App</button>
     </div>
-    <button id="genBtn" class="primary">✨ 產生結果</button>
-  </section>
+  </header>
 
-  <section class="panel">
-    <h2>雷達圖（七階能量分佈）</h2>
-    <div class="canvasWrap">
-      <canvas id="radar" aria-label="七階能量雷達圖" role="img"></canvas>
+  <main class="wrap">
+    <div class="card">
+      <h2>今天能量設定</h2>
+      <div class="hint">請依直覺調整每題 0–10 分，完成後點「✨ 產生結果」。</div>
     </div>
-  </section>
 
-  <section class="panel">
-    <h3>今日聚焦點</h3>
-    <div id="focus" class="focus"></div>
-    <h3 style="margin-top:24px;">七階關鍵字 × 行動建議</h3>
-    <div id="advice" class="advice"></div>
-  </section>
-</main>
+    <!-- app.js 會把內容動態插入到這個容器 -->
+    <div id="app" class="card"></div>
 
-<footer class="footer">
-  <small>v7 • Enervi 7 PWA</small>
-</footer>
+    <div class="card">
+      <h2>整合雷達圖</h2>
+      <canvas id="radar" height="340"></canvas>
+      <div class="hint" style="margin-top:8px">
+        紫線：整合分數（Q + 轉入/轉出加權）；灰線：僅 Q；淡紫：僅 T（轉換投影）。
+      </div>
+    </div>
+  </main>
 
-<script src="./app.js?v=7"></script>
+  <!-- 安裝提示（PWA beforeinstallprompt） -->
+  <script>
+    let deferredPrompt;
+    const installBtn = document.getElementById('installBtn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.hidden = false;
+    });
+
+    installBtn.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      installBtn.hidden = true;
+    });
+
+    // iOS Safari 顯示引導（可視需要自行加提示）
+  </script>
+
+  <!-- 註冊 Service Worker（確保同路徑有 sw.js） -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .catch(err => console.log('SW register failed:', err));
+      });
+    }
+  </script>
+
+  <!-- 你的主程式（請用我上一則提供的整合雷達圖版 app.js 覆蓋） -->
+  <script src="app.js"></script>
 </body>
 </html>
