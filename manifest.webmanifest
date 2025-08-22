@@ -1,13 +1,28 @@
 {
   "name": "Enervi 7",
   "short_name": "Enervi7",
-  "start_url": "./",
+  "description": "Enervi7 七階能量量測 · 雷達圖分析 · 行動建議 · 能量日誌",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0d0d1a",
-  "theme_color": "#6f42c1",
+  "background_color": "#121212",
+  "theme_color": "#6C4AB6",
+  "orientation": "portrait-primary",
   "icons": [
-    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "./maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable any" }
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "./maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }
