@@ -1,83 +1,39 @@
-<!doctype html>
-<html lang="zh-Hant">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Enervi 7</title>
-<link rel="manifest" href="./manifest.webmanifest">
-<link rel="icon" type="image/png" href="./icon-192.png">
-<meta name="theme-color" content="#6f46ff"/>
-<link rel="stylesheet" href="./style.css">
-<!-- Chart.js + html2canvas will be injected if not present by app.js -->
-</head>
-<body>
-<div class="appbar">Enervi 7</div>
+<!doctype html><html lang="zh-Hant"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="manifest" href="manifest.webmanifest"/><meta name="theme-color" content="#6c45d6"/><title>Enervi 7</title>
+<link rel="stylesheet" href="style.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+</head><body>
+<header>Enervi 7</header>
 <div class="container">
-
-  <div class="card">
-    <div class="h">填寫 14 題</div>
-    <div class="sub">0–10 分。按「開始測驗」後立即顯示雷達圖（整合/僅Q/僅T）、主導階段＋瓶頸摘要。下方恆常顯示七階關鍵字/行動建議。</div>
-    <div class="progress" aria-label="progress"><div id="bar" style="width:0%"></div></div>
+ <div class="progress-wrap"><span class="badge">進度</span><div class="progress"><i id="progressBar"></i></div><span class="small"><span id="progressNum">0</span>/14</span><button id="installBtn" class="btn secondary" style="margin-left:auto">安裝 App</button></div>
+ <section class="card"><h2>填寫 14 題</h2><p class="caption">按「開始測驗」後會顯示雷達圖（整合/Q/T）、主導＋瓶頸摘要、精油建議與行動建議，並可下載結果卡。</p></section>
+ <section class="card" id="formCard">
+  <div class="section-title"><h2>七階題 Q1–Q7</h2><span class="caption">0→10</span></div><div id="qWrap"></div><hr/>
+  <div class="section-title"><h2>七個轉換 T1–T7</h2><span class="caption">0→10</span></div><div id="tWrap"></div><hr/>
+  <div class="row">
+   <label class="badge"><input type="checkbox" id="usePenalty"/> 加強卡關顯示</label>
+   <label>τ <input class="kbd" id="tauInput" type="number" step="0.1" min="0" max="10" value="4.0"/></label>
+   <label>δ <input class="kbd" id="deltaInput" type="number" step="0.1" min="0" max="2" value="0.3"/></label>
+   <button id="submitBtn" class="btn">開始測驗</button>
   </div>
-
-  <div class="card" id="formWrap">
-    <div class="h">七階題 Q1–Q7</div>
-    <div id="qGroup"></div>
-    <hr class="sep">
-    <div class="h">七個轉換 T1–T7</div>
-    <div id="tGroup"></div>
-    <div class="row" style="margin-top:10px">
-      <div class="inline">
-        <label><input id="penalty" type="checkbox"> 加強卡關顯示</label>
-      </div>
-      <div class="inline">
-        τ<input id="tau" type="number" step="0.1" min="0" max="10" value="4.0" style="width:70px;margin-left:6px">
-        δ<input id="delta" type="number" step="0.1" min="0" max="2" value="0.3" style="width:60px;margin-left:6px">
-      </div>
-      <button id="startBtn" class="btn">開始測驗</button>
-    </div>
+ </section>
+ <section class="card" id="resultCard" style="display:none">
+  <div class="section-title"><h2>結果</h2><div class="row"><button id="saveLogBtn" class="btn secondary">存到日誌</button><button id="downloadBtn" class="btn">下載結果卡（PNG）</button></div></div>
+  <div class="grid-2">
+   <div><canvas id="radarCanvas" height="420"></canvas><p class="caption">紫：整合；灰：僅 Q；淡紫：僅 T。</p></div>
+   <div><h3 id="summaryTitle">摘要</h3><div id="summaryText" class="caption"></div><h3>推薦精油</h3><div id="oilSuggest"></div><h3>七階分數（0–100）</h3><div id="stageScores"></div><h3>轉換分數（0–100）</h3><div id="transScores"></div></div>
   </div>
-
-  <div class="card" id="resultWrap" style="display:none">
-    <div class="grid-2">
-      <div>
-        <div class="h">雷達圖（整合 / 僅 Q / 僅 T）</div>
-        <div class="canvas-wrap"><canvas id="radar" height="380"></canvas></div>
-        <div class="legend">紫：整合（Q+轉入/轉出加權）｜灰：僅 Q｜淡紫：僅 T</div>
-        <div class="row" style="margin-top:10px">
-          <button id="savePng" class="btn alt">下載結果卡（PNG）</button>
-          <small class="kv" id="summary"></small>
-        </div>
-      </div>
-      <div>
-        <div class="h">分數摘要</div>
-        <div id="scores"></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="h">七階關鍵字＋行動建議</div>
-    <div id="advice"></div>
-  </div>
-
-  <div class="card">
-    <div class="h">能量日誌（本地保存）</div>
-    <div class="row">
-      <input id="note" placeholder="今天的重點或感想…" style="flex:1;padding:10px;border-radius:10px;border:1px solid #2a243f;background:#0e0c18;color:#fff">
-      <button id="saveLog" class="btn">存到日誌</button>
-    </div>
-    <small>保存在此瀏覽器的 localStorage；不會上傳。</small>
-  </div>
-
-  <div class="card">
-    <div class="h">歷史走勢（最近 7 次平均）</div>
-    <div class="canvas-wrap"><canvas id="trend" height="280"></canvas></div>
-  </div>
-
-  <footer>© Enervi 7 — PWA</footer>
+ </section>
+ <section class="card"><h2>七階關鍵字＋行動建議</h2><div id="stageHelp" class="grid-3"></div></section>
+ <section class="card"><h2>能量日誌（本地保存）</h2><textarea id="journal" rows="3" style="width:100%;padding:10px;border-radius:10px;background:#12122a;color:#fff;border:1px solid #2f2f4b" placeholder="今天的重點或感想…"></textarea><div class="row" style="margin-top:10px"><button id="saveJournal" class="btn">保存到日誌</button><span class="caption">保存在 localStorage；不會上傳。</span></div></section>
+ <section class="card"><h2>歷史走勢（最近 7 次平均）</h2><canvas id="trendCanvas" height="160"></canvas><div class="caption" id="historyNote"></div></section>
+ <footer>© Enervi7 — PWA</footer>
 </div>
-
-<script src="./app.js?v=v9" defer></script>
-</body>
-</html>
+<script src="app.js"></script>
+<script>
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{const v=Date.now();navigator.serviceWorker.register('./sw.js?v='+v);});}
+let deferredPrompt;const installBtn=document.getElementById('installBtn');window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;installBtn.style.display='block';});installBtn.addEventListener('click',async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;});
+</script>
+</body></html>

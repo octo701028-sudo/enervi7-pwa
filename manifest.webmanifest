@@ -1,28 +1,26 @@
 {
   "name": "Enervi 7",
   "short_name": "Enervi7",
-  "start_url": "./?source=pwa",
+  "start_url": ".",
   "display": "standalone",
-  "background_color": "#0f0b1c",
-  "theme_color": "#6f46ff",
+  "background_color": "#0f0f1c",
+  "theme_color": "#6c45d6",
   "icons": [
     {
       "src": "icon-192.png",
-      "type": "image/png",
       "sizes": "192x192",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
       "src": "icon-512.png",
-      "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
       "src": "maskable-512.png",
-      "type": "image/png",
       "sizes": "512x512",
-      "purpose": "maskable"
+      "type": "image/png",
+      "purpose": "maskable any"
     }
   ]
 }
