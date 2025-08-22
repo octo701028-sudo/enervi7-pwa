@@ -1,39 +1,352 @@
-<!doctype html><html lang="zh-Hant"><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<link rel="manifest" href="manifest.webmanifest"/><meta name="theme-color" content="#6c45d6"/><title>Enervi 7</title>
-<link rel="stylesheet" href="style.css"/>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-</head><body>
-<header>Enervi 7</header>
-<div class="container">
- <div class="progress-wrap"><span class="badge">進度</span><div class="progress"><i id="progressBar"></i></div><span class="small"><span id="progressNum">0</span>/14</span><button id="installBtn" class="btn secondary" style="margin-left:auto">安裝 App</button></div>
- <section class="card"><h2>填寫 14 題</h2><p class="caption">按「開始測驗」後會顯示雷達圖（整合/Q/T）、主導＋瓶頸摘要、精油建議與行動建議，並可下載結果卡。</p></section>
- <section class="card" id="formCard">
-  <div class="section-title"><h2>七階題 Q1–Q7</h2><span class="caption">0→10</span></div><div id="qWrap"></div><hr/>
-  <div class="section-title"><h2>七個轉換 T1–T7</h2><span class="caption">0→10</span></div><div id="tWrap"></div><hr/>
-  <div class="row">
-   <label class="badge"><input type="checkbox" id="usePenalty"/> 加強卡關顯示</label>
-   <label>τ <input class="kbd" id="tauInput" type="number" step="0.1" min="0" max="10" value="4.0"/></label>
-   <label>δ <input class="kbd" id="deltaInput" type="number" step="0.1" min="0" max="2" value="0.3"/></label>
-   <button id="submitBtn" class="btn">開始測驗</button>
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Enervi 7（救急單檔版）</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#6b46ff" />
+<style>
+  :root{--bg:#0f0f15;--card:#171725;--text:#e9e9ff;--muted:#b7b8d4;--primary:#6b46ff;--accent:#8b6bff;--ok:#2ecc71;--warn:#ffb703;--bad:#ff6b6b}
+  *{box-sizing:border-box} html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,"PingFang TC","Noto Sans TC","Helvetica Neue",Arial}
+  header{position:sticky;top:0;z-index:10;background:linear-gradient(180deg,#7a56ff,#6b46ff);padding:14px 18px}
+  header h1{margin:0;font-size:22px}
+  .wrap{max-width:900px;margin:18px auto;padding:0 14px}
+  .card{background:var(--card);border-radius:14px;padding:16px 14px;margin:14px 0;border:1px solid rgba(255,255,255,.06)}
+  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .btn{background:var(--primary);border:0;color:#fff;padding:12px 16px;border-radius:12px;font-weight:700;cursor:pointer}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .ghost{background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--text)}
+  .small{font-size:13px;color:var(--muted)}
+  .title{font-size:20px;margin:4px 0 10px}
+  .muted{color:var(--muted)}
+  .chip{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.06);font-size:12px;margin-right:6px}
+  input[type=range]{width:100%}
+  .grid{display:grid;gap:10px}
+  .grid-2{grid-template-columns:1fr 1fr}
+  .hide{display:none}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)}
+  canvas{max-width:100%}
+  .note{background:#11131e;border-radius:10px;padding:10px}
+  .progress{height:8px;background:#27293a;border-radius:999px;overflow:hidden}
+  .progress > i{display:block;height:100%;width:0;background:linear-gradient(90deg,#8b6bff,#6b46ff)}
+  .pin{position:fixed;bottom:14px;right:14px;z-index:9}
+</style>
+</head>
+<body>
+<header>
+  <h1>Enervi 7</h1>
+</header>
+
+<div class="wrap">
+
+  <!-- 進度＋安裝提示 -->
+  <div class="card row" style="justify-content:space-between">
+    <div style="flex:1;min-width:220px">
+      <div class="small">進度 <span id="progressText" class="chip">0/14</span></div>
+      <div class="progress"><i id="progressBar"></i></div>
+    </div>
+    <button id="installBtn" class="btn ghost">安裝 App</button>
   </div>
- </section>
- <section class="card" id="resultCard" style="display:none">
-  <div class="section-title"><h2>結果</h2><div class="row"><button id="saveLogBtn" class="btn secondary">存到日誌</button><button id="downloadBtn" class="btn">下載結果卡（PNG）</button></div></div>
-  <div class="grid-2">
-   <div><canvas id="radarCanvas" height="420"></canvas><p class="caption">紫：整合；灰：僅 Q；淡紫：僅 T。</p></div>
-   <div><h3 id="summaryTitle">摘要</h3><div id="summaryText" class="caption"></div><h3>推薦精油</h3><div id="oilSuggest"></div><h3>七階分數（0–100）</h3><div id="stageScores"></div><h3>轉換分數（0–100）</h3><div id="transScores"></div></div>
-  </div>
- </section>
- <section class="card"><h2>七階關鍵字＋行動建議</h2><div id="stageHelp" class="grid-3"></div></section>
- <section class="card"><h2>能量日誌（本地保存）</h2><textarea id="journal" rows="3" style="width:100%;padding:10px;border-radius:10px;background:#12122a;color:#fff;border:1px solid #2f2f4b" placeholder="今天的重點或感想…"></textarea><div class="row" style="margin-top:10px"><button id="saveJournal" class="btn">保存到日誌</button><span class="caption">保存在 localStorage；不會上傳。</span></div></section>
- <section class="card"><h2>歷史走勢（最近 7 次平均）</h2><canvas id="trendCanvas" height="160"></canvas><div class="caption" id="historyNote"></div></section>
- <footer>© Enervi7 — PWA</footer>
+
+  <!-- 說明 -->
+  <section class="card">
+    <div class="title">填寫 14 題</div>
+    <div class="muted">按「開始測驗」後會顯示雷達圖（整合/Q/T）、主導＋瓶頸摘要、精油建議與行動建議，並可下載結果卡。</div>
+  </section>
+
+  <!-- Q1-7 -->
+  <section class="card" id="pageQ">
+    <div class="title">七階題 Q1–Q7</div>
+    <div id="qList" class="grid"></div>
+    <div class="row" style="justify-content:flex-end">
+      <button class="btn" id="toT">下一步（T1–T7）</button>
+    </div>
+  </section>
+
+  <!-- T1-7 -->
+  <section class="card hide" id="pageT">
+    <div class="title">七個轉換 T1–T7</div>
+    <div id="tList" class="grid"></div>
+    <div class="row" style="gap:8px;justify-content:flex-end">
+      <label class="chip"><input type="checkbox" id="penalty" style="vertical-align:-2px;margin-right:6px"> 加強卡關顯示</label>
+      <span class="chip">τ <input id="tau" type="number" value="4.0" step="0.1" style="width:70px;background:transparent;border:0;color:#fff"></span>
+      <span class="chip">δ <input id="delta" type="number" value="0.3" step="0.1" style="width:70px;background:transparent;border:0;color:#fff"></span>
+      <button class="btn" id="startBtn">開始測驗</button>
+    </div>
+  </section>
+
+  <!-- 結果 -->
+  <section class="card hide" id="result">
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <div class="title">雷達圖（可切換）</div>
+      <div>
+        <button class="btn ghost" data-mode="mix">整合</button>
+        <button class="btn ghost" data-mode="q">僅 Q</button>
+        <button class="btn ghost" data-mode="t">僅 T</button>
+        <button class="btn" id="dl">下載結果卡（PNG）</button>
+      </div>
+    </div>
+    <canvas id="radar" height="340"></canvas>
+
+    <div id="summary" class="note" style="margin-top:12px"></div>
+
+    <div class="grid grid-2" style="margin-top:12px">
+      <div class="card">
+        <div class="title">建議精油（依主導＋瓶頸）</div>
+        <div id="oils" class="muted"></div>
+      </div>
+      <div class="card">
+        <div class="title">行動建議（恆常）</div>
+        <div id="actions" class="muted"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 能量日誌 -->
+  <section class="card">
+    <div class="title">能量日誌（本地保存）</div>
+    <textarea id="journal" rows="3" placeholder="今天的重點或感想…" style="width:100%;background:#0e1020;border:1px solid rgba(255,255,255,.06);color:#fff;border-radius:10px;padding:10px"></textarea>
+    <div class="row" style="justify-content:flex-end;margin-top:8px">
+      <button id="saveJ" class="btn">存到日誌</button>
+    </div>
+  </section>
+
+  <!-- 歷史走勢 -->
+  <section class="card">
+    <div class="title">歷史走勢（最近 7 次平均）</div>
+    <canvas id="trend" height="240"></canvas>
+  </section>
+
 </div>
-<script src="app.js"></script>
+
+<!-- 右下角回頂 -->
+<button class="btn pin ghost" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<!-- CDN（自動載入，失敗會再嘗試一次） -->
 <script>
-if('serviceWorker' in navigator){window.addEventListener('load',()=>{const v=Date.now();navigator.serviceWorker.register('./sw.js?v='+v);});}
-let deferredPrompt;const installBtn=document.getElementById('installBtn');window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;installBtn.style.display='block';});installBtn.addEventListener('click',async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;});
+function loadCDN(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);});}
+(async()=>{
+  try{
+    await loadCDN('https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js');
+  }catch(e){await loadCDN('https://unpkg.com/chart.js@4.4.1/dist/chart.umd.min.js');}
+  try{
+    await loadCDN('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
+  }catch(e){await loadCDN('https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js');}
+  boot();
+})();
 </script>
-</body></html>
+
+<script>
+// ====== 一、基礎資料 ======
+const Q_TEXTS = [
+  "Q1 覺察：我能清楚覺察自己此刻的情緒、念頭與身體感受。",
+  "Q2 釋放：當我察覺壓力或情緒時，我能有效地鬆開與代謝。",
+  "Q3 信任：我對生活與未來持有信任與安全感，能允許事情順勢發生。",
+  "Q4 行動：我能把想法拆解成最小可行步驟，並付諸行動。",
+  "Q5 流動：我能維持專注與節奏，接受回饋並快速微調。",
+  "Q6 共鳴：我與他人／世界連結感良好，能創造正向回饋與影響。",
+  "Q7 整合：我能總結經驗並固化成結構與習慣，持續複製成果。"
+];
+const T_TEXTS = [
+  "T1 覺察→釋放：看見情緒或議題時，能順利進入釋放與鬆綁。",
+  "T2 釋放→信任：在放下之後，能自然進入信任與允許的狀態。",
+  "T3 信任→行動：把內在信任轉為具體行動是順暢的。",
+  "T4 行動→流動：由單次行動進入穩定節奏與回饋迭代是順暢的。",
+  "T5 流動→共鳴：對外分享並獲得回饋與擴散是順暢的。",
+  "T6 共鳴→整合：把被驗證的做法整理成 SOP／習慣是順暢的。",
+  "T7 整合→新覺察：結束一輪後回到清明覺察開啟下一輪是順暢的。"
+];
+const STAGE_LABELS = ["安住","根基","感受","行動","交流","洞察","願景"]; // S1..S7 對應
+const STAGE_META = {
+  S1:{kw:"覺知當下・辨識情緒・看見模式・誠實面對"},
+  S2:{kw:"鬆綁負荷・情緒代謝・放下執著・完成回收"},
+  S3:{kw:"允許發生・對齊意圖・資源感・安全感"},
+  S4:{kw:"最小步驟・可驗證・節奏・執行力"},
+  S5:{kw:"專注・回饋循環・韌性・迭代"},
+  S6:{kw:"連結・價值感・貢獻・擴散"},
+  S7:{kw:"總結經驗・固化習慣・結構化・長期化"},
+};
+const ACTIONS = {
+  S1:["寫三句『此刻我真實的感受是…』","3 分鐘腹式呼吸（4-4-6）並記錄身體感受","列出 1 個反覆念頭標記事實/解讀"],
+  S2:["『寫了就撕/燒』釋放書寫（2–3 段）","身體掃描，緊繃處 60 秒放鬆","把 1 件拖延小事今天完成"],
+  S3:["用『我允許…』造句 3 句","回顧 1 次被支持的證據，寫可複製點","主動請求一次幫助"],
+  S4:["把目標拆成 10 分鐘可完成的一步，立刻做","設定今日 3 件 MIT","完成後對可信任對象公開回報"],
+  S5:["把卡點→調整一個微策略（A/B）","25 分鐘番茄鐘全程專注","記錄 1 個有效回饋，明天沿用"],
+  S6:["分享一個小成果/洞見到社群","邀請 1 人給 3 句具體回饋","主動建立一個合作可能"],
+  S7:["5 句話摘要本週 3 學到＋1 改進","把有效步驟寫成 Checklist 並固定到行程","為下個週期設 1 個可衡量指標"],
+};
+// 超精簡精油（示意）：主導＋瓶頸給 3–6 支
+const OILS = {
+  S1:["薰衣草","佛手柑","乳香"], S2:["廣藿香","岩蘭草","雪松"],
+  S3:["橙花","甜橙","羅馬洋甘菊"], S4:["迷迭香","薄荷","尤加利"],
+  S5:["葡萄柚","檸檬","快樂鼠尾草"], S6:["依蘭","天竺葵","雪松"],
+  S7:["乳香","檀香","絲柏"]
+};
+
+// ====== 二、UI 產生 ======
+function mkSlider(label, key){
+  const wrap=document.createElement('div');
+  wrap.className='card';
+  wrap.innerHTML=`
+    <div class="muted" style="margin-bottom:6px">${label}</div>
+    <input type="range" min="0" max="10" step="1" value="5" data-key="${key}">
+    <div class="small">現在分數：<b class="val">5</b></div>`;
+  const r=wrap.querySelector('input');
+  const v=wrap.querySelector('.val');
+  r.addEventListener('input',()=>{v.textContent=r.value;updateProgress();});
+  return wrap;
+}
+
+function buildQuestions(){
+  const qList=document.getElementById('qList');
+  const tList=document.getElementById('tList');
+  Q_TEXTS.forEach((t,i)=>qList.appendChild(mkSlider(t, `Q${i+1}`)));
+  T_TEXTS.forEach((t,i)=>tList.appendChild(mkSlider(t, `T${i+1}`)));
+}
+function getAnswers(){
+  const vals={};
+  document.querySelectorAll('input[type=range][data-key]').forEach(r=>{
+    vals[r.dataset.key]=+r.value;
+  });
+  return vals;
+}
+function updateProgress(){
+  const filled=[...document.querySelectorAll('input[type=range][data-key]')].reduce((a,r)=>a+(r.value!=="5"?1:0),0);
+  const text=`${filled}/14`;
+  document.getElementById('progressText').textContent=text;
+  document.getElementById('progressBar').style.width=`${(filled/14)*100}%`;
+}
+
+// ====== 三、核心計分 ======
+function compute(answers,{penalty,tau,delta}){
+  const Q=[1,2,3,4,5,6,7].map(i=>+answers[`Q${i}`]||0);
+  const T=[1,2,3,4,5,6,7].map(i=>+answers[`T${i}`]||0);
+  const wQ=.6,wPrev=.2,wNext=.2;
+  const sRaw=[];
+  for(let i=0;i<7;i++){
+    const prev=T[(i+6)%7], next=T[i];
+    let v=wQ*Q[i]+wPrev*prev+wNext*next;
+    if(penalty){
+      if(prev<tau) v-=delta;
+      if(next<tau) v-=delta;
+      v=Math.max(0,v);
+    }
+    sRaw.push(v);
+  }
+  const S=sRaw.map(v=>+(v*10).toFixed(1)); // 0..100
+  const TT=T.map(v=>+(v*10).toFixed(1));
+  const dominant = S.indexOf(Math.max(...S));         // 0..6
+  const bottlenecks = [...TT.map((v,i)=>[v,i])].sort((a,b)=>a[0]-b[0]).slice(0,2).map(x=>x[1]);
+  return {S, TT, dominant, bottlenecks, Q, T};
+}
+
+// ====== 四、圖與摘要 ======
+let radar, trend;
+function drawRadar(mode, data){
+  const ctx=document.getElementById('radar');
+  const labels=STAGE_LABELS;
+  const opt={responsive:true,plugins:{legend:{display:false}},scales:{r:{min:0,max:100,ticks:{stepSize:20,color:'#b7b8d4'},grid:{color:'rgba(255,255,255,.12)'}}}};
+  const ds=[];
+  if(mode==='mix'){ ds.push({label:'整合',data:data.S,borderColor:'#8b6bff',backgroundColor:'rgba(139,107,255,.18)',pointRadius:2}); }
+  if(mode==='q' || mode==='mix'){
+    const q10=data.Q.map(v=>v*10);
+    ds.push({label:'僅 Q',data:q10,borderColor:'#2ecc71',backgroundColor:'rgba(46,204,113,.14)',pointRadius:2});
+  }
+  if(mode==='t' || mode==='mix'){
+    const t10=data.TT;
+    ds.push({label:'僅 T',data:t10,borderColor:'#ffb703',backgroundColor:'rgba(255,183,3,.14)',pointRadius:2});
+  }
+  radar?.destroy();
+  radar=new Chart(ctx,{type:'radar',data:{labels,datasets:ds},options:opt});
+}
+function summaryText(c){
+  const dom = c.dominant;        // 0..6
+  const bn1 = c.bottlenecks[0], bn2 = c.bottlenecks[1];
+  return `主導階段：<b>${STAGE_LABELS[dom]}</b>｜瓶頸：<b>S${bn1+1}→S${(bn1+1)%7+1}</b>；次瓶頸：<b>S${bn2+1}→S${(bn2+1)%7+1}</b>`;
+}
+function renderActions(dom){
+  const sid=`S${dom+1}`;
+  const acts=(ACTIONS[sid]||[]).map(a=>'• '+a).join('<br>');
+  document.getElementById('actions').innerHTML =
+    `<div class="small muted">${STAGE_LABELS[dom]} 關鍵字：${STAGE_META[sid].kw}</div><div style="margin-top:6px">${acts}</div>`;
+}
+function renderOils(dom,bns){
+  const arr=[...(OILS[`S${dom+1}`]||[])];
+  bns.forEach(i=>arr.push(...(OILS[`S${i+1}`]||[])));
+  const uniq=[...new Set(arr)].slice(0,6);
+  document.getElementById('oils').textContent = uniq.join('、');
+}
+
+// ====== 五、歷史保存 ======
+const LS_KEY='enervi7_history_v1';
+function pushHistory(c){
+  const hist=JSON.parse(localStorage.getItem(LS_KEY)||'[]');
+  hist.unshift({ts:Date.now(),S:c.S});
+  while(hist.length>7) hist.pop();
+  localStorage.setItem(LS_KEY,JSON.stringify(hist));
+  drawTrend();
+}
+function drawTrend(){
+  const hist=JSON.parse(localStorage.getItem(LS_KEY)||'[]');
+  if(hist.length===0){document.getElementById('trend').getContext('2d').clearRect(0,0,9999,9999); return;}
+  const avg=new Array(7).fill(0);
+  hist.forEach(h=>h.S.forEach((v,i)=>avg[i]+=v));
+  for(let i=0;i<7;i++) avg[i]/=hist.length;
+  trend?.destroy();
+  trend=new Chart(document.getElementById('trend'),{
+    type:'bar',
+    data:{labels:STAGE_LABELS,datasets:[{label:`最近 ${hist.length} 次平均`,data:avg,backgroundColor:'rgba(139,107,255,.55)'}]},
+    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{color:'#b7b8d4'}}}}
+  });
+}
+
+// ====== 六、下載結果卡 ======
+async function downloadPNG(){
+  const box=document.getElementById('result');
+  const canvas=await html2canvas(box,{backgroundColor:'#0f0f15',scale:2});
+  const a=document.createElement('a');
+  a.href=canvas.toDataURL('image/png');
+  a.download='enervi7-result.png';
+  a.click();
+}
+
+// ====== 七、安裝 PWA（可略過） ======
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault(); deferredPrompt=e; document.getElementById('installBtn').onclick=async()=>{ if(!deferredPrompt) return; deferredPrompt.prompt(); deferredPrompt=null; };});
+if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}
+
+// ====== 八、主流程 ======
+function boot(){
+  buildQuestions();
+  updateProgress();
+  document.getElementById('toT').onclick=()=>{document.getElementById('pageQ').classList.add('hide');document.getElementById('pageT').classList.remove('hide');window.scrollTo({top:0,behavior:'smooth'});};
+  document.getElementById('startBtn').onclick=()=>{
+    const answers=getAnswers();
+    const opt={penalty:document.getElementById('penalty').checked,tau:+document.getElementById('tau').value,delta:+document.getElementById('delta').value};
+    const c=compute(answers,opt);
+    // 顯示
+    document.getElementById('result').classList.remove('hide');
+    document.getElementById('summary').innerHTML=summaryText(c);
+    drawRadar('mix',c);
+    renderActions(c.dominant);
+    renderOils(c.dominant,c.bottlenecks);
+    // 存歷史
+    pushHistory(c);
+    // 切換模式
+    document.querySelectorAll('#result [data-mode]').forEach(btn=>{
+      btn.onclick=()=>drawRadar(btn.dataset.mode,c);
+    });
+  };
+  document.getElementById('dl').onclick=downloadPNG;
+  // 日誌
+  document.getElementById('saveJ').onclick=()=>{
+    const t=(localStorage.getItem('enervi7_journal')||'')+'\n'+new Date().toLocaleString()+'｜'+(document.getElementById('journal').value||'(空)');
+    localStorage.setItem('enervi7_journal',t);
+    document.getElementById('journal').value='';
+    alert('已保存到此瀏覽器（不會上傳）');
+  };
+}
+</script>
+</body>
+</html>
